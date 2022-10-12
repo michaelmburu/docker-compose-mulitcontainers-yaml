@@ -1,0 +1,56 @@
+version: "3.8"
+services:
+  mongodb:
+    image: 'mongo'
+    volumes:
+      - data:/data/db
+    container_name: mongodb
+    #environment: 
+      #MONGO_INITDB_ROOT_USERNAME: mykeadam
+      #MONGO_INITDB_ROOT_PASSWORD: secret
+      # - MONGO_INITDB_ROOT_USERNAME
+    #or
+    env_file:
+      - ./env/mongo.env
+    #networks: no need to do this as docker does this automatically.
+     # - goals
+  
+  backend:
+    build: ./backend
+    #build:
+      #context: ./backend
+      #dockerfile: Dockerfile
+      #args:
+        #some-arg: 1
+    ports:
+      - '80:80'
+    volumes:
+      - logs:/app/logs
+      - ./backend:/app #bind mounts don't need absolute paths
+      - /app/node_modules
+    container_name: goals-node
+    env_file:
+      - ./env/backend.env
+    depends_on: #this service needs to run first before this one runs
+      - mongodb
+    #networks: o need to do this as docker does this automatically.
+      # - goals
+    
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend/src:/app/src
+    container_name: goals-react
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+# Remember to ONLY add named volumes to the top level volumes key
+volumes:
+  data: 
+  logs:
+
+
